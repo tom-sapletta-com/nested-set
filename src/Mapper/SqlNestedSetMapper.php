@@ -154,7 +154,7 @@ class SqlNestedSetMapper
      */
     public function getBranch(NodeInterface $node)
     {
-        return null;
+        return array_merge($this->getAncestors(),[$node],$this->getDescendants());
     }
 
     /**
@@ -167,7 +167,23 @@ class SqlNestedSetMapper
      */
     public function getAncestors(NodeInterface $node)
     {
-        return null;
+        $sql = new Sql($this->databaseAdapter);
+
+        $select = $sql->select($this->tableName);
+        $select->columns('*');
+        $select->where('root_id = :root_id');
+        $select->where('lft < :lft');
+        $select->where('rgt > :rgt');
+        $select->order('lft');
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute([
+            ':root_id' => $node->getRootId(),
+            ':lft' => $node->getLft(),
+            ':rgt' => $node->getRgt(),
+        ]);
+
+        return $this->getResultArray($result);
     }
 
     /**
@@ -205,18 +221,19 @@ class SqlNestedSetMapper
     {
         $sql = new Sql($this->databaseAdapter);
 
-        $select = $sql->select();
-        $select->columns(['t3' => '*']);
-        $select->from(['t3' => $this->tableName]);
-        $select->join(['t2' => $this->tableName], 't3.lft BETWEEN t2.lft AND t2.rgt', []);
-        $select->join(['t1' => $this->tableName], 't3.lft BETWEEN t1.lft AND t1.rgt', []);
-        $select->where('t1.id = :node_id');
-        $select->where('t3.id <> :node_id');
-        $select->group('t3.lft');
-        $select->order('t3.lft');
+        $select = $sql->select($this->tableName);
+        $select->columns('*');
+        $select->where('root_id = :root_id');
+        $select->where('lft > :lft');
+        $select->where('rgt < :rgt');
+        $select->order('lft');
 
         $statement = $sql->prepareStatementForSqlObject($select);
-        $result = $statement->execute([':node_id' => $node->getId()]);
+        $result = $statement->execute([
+            ':root_id' => $node->getRootId(),
+            ':lft' => $node->getLft(),
+            ':rgt' => $node->getRgt(),
+        ]);
 
         return $this->getResultArray($result);
     }

@@ -15,9 +15,13 @@ namespace HenrikThesing\NestedSet\Service;
 
 use HenrikThesing\NestedSet\Entity\NodeInterface;
 use HenrikThesing\NestedSet\Mapper\SqlNestedSetMapper;
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventManagerAwareTrait;
 
-class NestedSetService
+class NestedSetService implements EventManagerAwareInterface
 {
+    use EventManagerAwareTrait;
+
     /** @var SqlNestedSetMapper $mapper */
     protected $mapper;
 
@@ -38,7 +42,20 @@ class NestedSetService
      */
     public function find($id)
     {
-        return $this->mapper->find($id);
+        $params = compact('id');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params,function($v) {
+            return ($v instanceof NodeInterface);
+        });
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->find($id);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -48,7 +65,17 @@ class NestedSetService
      */
     public function findAll()
     {
-        return $this->mapper->findAll();
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->findAll();
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -61,7 +88,18 @@ class NestedSetService
      */
     public function findAllByRootId($root_id)
     {
-        return $this->mapper->findAllByRootId($root_id);
+        $params = compact('root_id');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->findAllByRootId($root_id);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -72,7 +110,17 @@ class NestedSetService
      */
     public function getRootNodes()
     {
-        return $this->mapper->getRootNodes();
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getRootNodes();
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -85,7 +133,18 @@ class NestedSetService
      */
     public function getBranch(NodeInterface $node)
     {
-        return $this->mapper->getBranch($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getBranch($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -98,7 +157,18 @@ class NestedSetService
      */
     public function getAncestors(NodeInterface $node)
     {
-        return $this->mapper->getAncestors($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getAncestors($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -111,7 +181,20 @@ class NestedSetService
      */
     public function getParent(NodeInterface $node)
     {
-        return $this->mapper->getParent($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params,function($v){
+            return ($v instanceof NodeInterface);
+        });
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getParent($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -124,7 +207,18 @@ class NestedSetService
      */
     public function getDescendants(NodeInterface $node)
     {
-        return $this->mapper->getDescendants($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getDescendants($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -137,7 +231,18 @@ class NestedSetService
      */
     public function getChildren(NodeInterface $node)
     {
-        return $this->mapper->getChildren($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getChildren($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -150,7 +255,18 @@ class NestedSetService
      */
     public function getSiblings(NodeInterface $node)
     {
-        return $this->mapper->getSiblings($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getSiblings($node);#
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -163,7 +279,18 @@ class NestedSetService
      */
     public function getPath(NodeInterface $node)
     {
-        return $this->mapper->getPath($node);
+        $params = compact('node');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->getPath($node);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
 }
