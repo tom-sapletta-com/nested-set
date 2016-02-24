@@ -15,9 +15,13 @@ namespace HenrikThesing\NestedSet\Service;
 
 use HenrikThesing\NestedSet\Entity\NodeInterface;
 use HenrikThesing\NestedSet\Mapper\SqlNestedSetMapper;
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventManagerAwareTrait;
 
-class NestedSetService
+class NestedSetService implements EventManagerAwareInterface
 {
+    use EventManagerAwareTrait;
+
     /** @var SqlNestedSetMapper $mapper */
     protected $mapper;
 
@@ -38,7 +42,20 @@ class NestedSetService
      */
     public function find($id)
     {
-        return $this->mapper->find($id);
+        $params = compact('id');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params,function($v) {
+            return ($v instanceof NodeInterface);
+        });
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->find($id);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -48,7 +65,17 @@ class NestedSetService
      */
     public function findAll()
     {
-        return $this->mapper->findAll();
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->findAll();
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
@@ -61,7 +88,18 @@ class NestedSetService
      */
     public function findAllByRootId($root_id)
     {
-        return $this->mapper->findAllByRootId($root_id);
+        $params = compact('root_id');
+        $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
+        if($event->stopped()) {
+            return $event->last();
+        }
+
+        $result = $this->mapper->findAllByRootId($root_id);
+
+        $params['__RESULT__'] = $result;
+        $this->getEventManager()->trigger(__FUNCTION__.'.post',$this,$params);
+
+        return $result;
     }
 
     /**
