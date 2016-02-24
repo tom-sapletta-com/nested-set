@@ -1,0 +1,24 @@
+{
+    "name": "henrikthesing/nested-set",
+    "description": "A Zend Framework 2 nested set implementation",
+    "type": "git",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "HenrikThesing\\NestedSet\\": "src"
+        }
+    },
+    "authors": [
+        {
+            "name": "Henrik Thesing",
+            "email": "mail@henrikthesing.de"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zend-db": "^2.3.0",
+        "zendframework/zend-modulemanager": "^2.3.0",
+        "zendframework/zend-servicemanager": "^2.3.0",
+        "zendframework/zend-stdlib": "^2.3.0"
+    }
+}
