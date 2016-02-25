@@ -154,7 +154,17 @@ class SqlNestedSetMapper
      */
     public function getBranch(NodeInterface $node)
     {
-        return array_merge($this->getAncestors(),[$node],$this->getDescendants());
+        $ancestors = $this->getAncestors($node);
+        $descendants = $this->getDescendants($node);
+
+        if (!is_array($ancestors)) {
+            $ancestors = [];
+        }
+        if (!is_array($descendants)) {
+            $descendants = [];
+        }
+
+        return array_merge($ancestors, [$node], $descendants);
     }
 
     /**
@@ -170,7 +180,6 @@ class SqlNestedSetMapper
         $sql = new Sql($this->databaseAdapter);
 
         $select = $sql->select($this->tableName);
-        $select->columns('*');
         $select->where('root_id = :root_id');
         $select->where('lft < :lft');
         $select->where('rgt > :rgt');
