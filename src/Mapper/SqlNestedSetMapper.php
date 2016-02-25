@@ -222,7 +222,6 @@ class SqlNestedSetMapper
         $sql = new Sql($this->databaseAdapter);
 
         $select = $sql->select($this->tableName);
-        $select->columns('*');
         $select->where('root_id = :root_id');
         $select->where('lft > :lft');
         $select->where('rgt < :rgt');
