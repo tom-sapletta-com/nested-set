@@ -1,4 +1,4 @@
-# NestedSet
+# NestedSet (Work in progress)
 
 henrikthesing/nested-set is a Zend Framework 2 implementation of Nested Set
 
@@ -60,6 +60,8 @@ To include the base node in all results you can set the option includeBaseNode t
 
 ### Methods
 
+### Basics
+
 ### findAll()
 To get an entity of every single node of the table - including the root node - call the findAll() method after creating the nestedSetService.
 
@@ -99,7 +101,7 @@ To get all ancestor nodes of a given node entity, call the getAncestors() method
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->findAncestors($node);
+    $ancestors = $nestedSetService->findAncestors($node);
 ```
 
 ### findParent($node)
@@ -108,16 +110,16 @@ To get the parent node of a given node entity, call the getParent() method with 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->findParent($node);
+    $parent = $nestedSetService->findParent($node);
 ```
 
-### getDescendants($node)
+### findDescendants($node)
 To get all descendant nodes of a given node entity, call the getDescendants() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(4);
-    $branch = $nestedSetService->findDescendants($node);
+    $descendants = $nestedSetService->findDescendants($node);
 ```
 
 ### findChildren($node)
@@ -126,7 +128,7 @@ To get the child nodes of a given node entity, call the getChildren() method wit
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(4);
-    $branch = $nestedSetService->findChildren($node);
+    $children = $nestedSetService->findChildren($node);
 ```
 
 ### findSiblings($node, $includeCurrent = false)
@@ -136,7 +138,7 @@ the current node by setting the param includeCurrent to true.
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->findSiblings($node);
+    $siblings = $nestedSetService->findSiblings($node, $includeCurrent);
 ```
 
 ### findPath($node)
@@ -145,7 +147,7 @@ To get all node from the root node to the given node entity, call the getPath() 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(2);
-    $branch = $nestedSetService->findPath($node);
+    $path = $nestedSetService->findPath($node);
 ```
 
 ## Contribute
