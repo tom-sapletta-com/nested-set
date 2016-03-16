@@ -48,7 +48,17 @@ Add the nested set module to the `application.config.php` file of your applicati
 
 ## Usage
 
-### Basics
+### Basic Settings
+
+### setIncludeBaseNode(true|false)
+To include the base node in all results you can set the option includeBaseNode to true
+
+```
+    $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
+    $nestedSetService->setIncludeBaseNode(true);
+```
+
+### Methods
 
 ### findAll()
 To get an entity of every single node of the table - including the root node - call the findAll() method after creating the nestedSetService.
@@ -58,7 +68,7 @@ To get an entity of every single node of the table - including the root node - c
     $nodes = $nestedSetService->findAll();
 ```
 
-### find()
+### find($id)
 To get an entity of a specific node by id, call the find() method with the node id as the first parameter after creating the nestedSetService.
 
 ```
@@ -66,7 +76,7 @@ To get an entity of a specific node by id, call the find() method with the node 
     $nodes = $nestedSetService->find(3);
 ```
 
-### findAllByRootId()
+### findAllByRootId($id)
 To get all node entities of a single root node call the findAllByRootId() method with the root node id as the first parameter after creating the nestedSetService.
 
 ```
@@ -74,67 +84,68 @@ To get all node entities of a single root node call the findAllByRootId() method
     $nodes = $nestedSetService->findAllByRootId(2);
 ```
 
-### getBranch()
+### findBranch($node)
 To get the whole branch a given node entity is in, call the getBranch() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(3);
-    $branch = $nestedSetService->getBranch($node);
+    $branch = $nestedSetService->findBranch($node);
 ```
 
-### getAncestors()
+### findAncestors($node)
 To get all ancestor nodes of a given node entity, call the getAncestors() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->getAncestors($node);
+    $branch = $nestedSetService->findAncestors($node);
 ```
 
-### getParent()
+### findParent($node)
 To get the parent node of a given node entity, call the getParent() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->getParent($node);
+    $branch = $nestedSetService->findParent($node);
 ```
 
-### getDescendants()
+### getDescendants($node)
 To get all descendant nodes of a given node entity, call the getDescendants() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(4);
-    $branch = $nestedSetService->getDescendants($node);
+    $branch = $nestedSetService->findDescendants($node);
 ```
 
-### getChildren()
+### findChildren($node)
 To get the child nodes of a given node entity, call the getChildren() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(4);
-    $branch = $nestedSetService->getChildren($node);
+    $branch = $nestedSetService->findChildren($node);
 ```
 
-### getSiblings()
-To get the siblings of a given node entity, call the getSiblings() method with the node entity as the first parameter after creating the nestedSetService.
+### findSiblings($node, $includeCurrent = false)
+To get the siblings of a given node entity, call the getSiblings() method with the node entity as the first parameter after creating the nestedSetService. You can include
+the current node by setting the param includeCurrent to true.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(6);
-    $branch = $nestedSetService->getSiblings($node);
+    $branch = $nestedSetService->findSiblings($node);
 ```
 
-### getPath()
+### findPath($node)
 To get all node from the root node to the given node entity, call the getPath() method with the node entity as the first parameter after creating the nestedSetService.
 
 ```
     $nestedSetService = $sm->get('HenrikThesing\NestedSet\Service\NestedSetMainNavigationService');
     $node = $nestedSetService->find(2);
-    $branch = $nestedSetService->getPath($node);
+    $branch = $nestedSetService->findPath($node);
 ```
 
 ## Contribute

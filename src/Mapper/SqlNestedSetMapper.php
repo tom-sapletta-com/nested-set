@@ -19,6 +19,7 @@ use HenrikThesing\NestedSet\Hydrator\MapperNamingStrategy;
 
 use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\Adapter\Driver\ResultInterface;
+use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\HydratorInterface;
@@ -33,6 +34,9 @@ class SqlNestedSetMapper
 
     /** @var string */
     protected $tableName;
+
+    /** @var NodeInterface */
+    protected $baseNode;
 
     /** @var ServiceLocatorInterface */
     protected $serviceLocator;
@@ -58,6 +62,41 @@ class SqlNestedSetMapper
     public function setTableName($tableName)
     {
         $this->tableName = $tableName;
+    }
+
+    /**
+     * @param NodeInterface $baseNode
+     */
+    private function setBaseNode(NodeInterface $baseNode)
+    {
+        $this->baseNode = $baseNode;
+    }
+
+    /**
+     * @return NodeInterface
+     * @throws InvalidNodeIdException
+     */
+    public function findBaseNode()
+    {
+        if ($this->baseNode === null) {
+
+            $sql = new Sql($this->databaseAdapter);
+            $select = $sql->select($this->tableName);
+            $select->where('root_id IS NULL');
+            $select->where('parent_id IS NULL');
+
+            $statement = $sql->prepareStatementForSqlObject($select);
+            $result = $statement->execute();
+            $baseNode = $this->getResultRow($result);
+
+            if ($baseNode === null) {
+                throw new InvalidNodeIdException('invalid base node id');
+            }
+
+            $this->setBaseNode($baseNode);
+        }
+
+        return $this->baseNode;
     }
 
     /**
@@ -87,16 +126,20 @@ class SqlNestedSetMapper
     /**
      * Returns an array of NodeInterface entities.
      *
+     * @param $includeBaseNode
+     *
      * @return NodeInterface[]
      */
-    public function findAll()
+    public function findAll($includeBaseNode)
     {
         $sql = new Sql($this->databaseAdapter);
         $select = $sql->select($this->tableName);
+        $params = $this->expandSelectWithBaseNodeLogic($select, $includeBaseNode);
         $select->order('lft ASC');
 
         $statement = $sql->prepareStatementForSqlObject($select);
-        $result = $statement->execute();
+
+        $result = $statement->execute($params);
 
         return $this->getResultArray($result);
     }
@@ -132,11 +175,11 @@ class SqlNestedSetMapper
      *
      * @return NodeInterface[]|null
      */
-    public function getRootNodes()
+    public function findRootNodes()
     {
         $sql = new Sql($this->databaseAdapter);
         $select = $sql->select($this->tableName);
-        $select->where('parent_id IS NULL');
+        $select->where('level = 2');
 
         $statement = $sql->prepareStatementForSqlObject($select);
         $result = $statement->execute();
@@ -149,13 +192,14 @@ class SqlNestedSetMapper
      * the given NodeInterface entity.
      *
      * @param NodeInterface $node
+     * @param bool $includeBaseNode
      *
-     * @return NodeInterface[]
+     * @return \HenrikThesing\NestedSet\Entity\NodeInterface[]
      */
-    public function getBranch(NodeInterface $node)
+    public function findBranch(NodeInterface $node, $includeBaseNode)
     {
-        $ancestors = $this->getAncestors($node);
-        $descendants = $this->getDescendants($node);
+        $ancestors = $this->findAncestors($node, $includeBaseNode);
+        $descendants = $this->findDescendants($node);
 
         if (!is_array($ancestors)) {
             $ancestors = [];
@@ -172,25 +216,26 @@ class SqlNestedSetMapper
      * NodeInterface entity or null in case of $node is the root node.
      *
      * @param NodeInterface $node
+     * @param bool $includeBaseNode
      *
-     * @return NodeInterface[]|null
+     * @return \HenrikThesing\NestedSet\Entity\NodeInterface[]|null
      */
-    public function getAncestors(NodeInterface $node)
+    public function findAncestors(NodeInterface $node, $includeBaseNode)
     {
         $sql = new Sql($this->databaseAdapter);
 
         $select = $sql->select($this->tableName);
-        $select->where('root_id = :root_id');
         $select->where('lft < :lft');
         $select->where('rgt > :rgt');
         $select->order('lft');
 
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $result = $statement->execute([
-            ':root_id' => $node->getRootId(),
+        $params = array_merge([
             ':lft' => $node->getLft(),
-            ':rgt' => $node->getRgt(),
-        ]);
+            ':rgt' => $node->getRgt()
+        ], $this->expandSelectWithBaseNodeLogic($select, $includeBaseNode));
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute($params);
 
         return $this->getResultArray($result);
     }
@@ -200,10 +245,11 @@ class SqlNestedSetMapper
      * or null in case of $node is the root node.
      *
      * @param NodeInterface $node
+     * @param bool $includeBaseNode
      *
-     * @return NodeInterface[]|null
+     * @return \HenrikThesing\NestedSet\Entity\NodeInterface[]|null
      */
-    public function getParent(NodeInterface $node)
+    public function getParent(NodeInterface $node, $includeBaseNode)
     {
         $sql = new Sql($this->databaseAdapter);
 
@@ -212,8 +258,12 @@ class SqlNestedSetMapper
         $select->where('id = :parent_id');
         $select->order('lft');
 
+        $params = array_merge([
+            ':parent_id' => $node->getParentId()
+        ], $this->expandSelectWithBaseNodeLogic($select, $includeBaseNode));
+
         $statement = $sql->prepareStatementForSqlObject($select);
-        $result = $statement->execute([':parent_id' => $node->getParentId()]);
+        $result = $statement->execute($params);
 
         return $this->getResultRow($result);
     }
@@ -226,7 +276,7 @@ class SqlNestedSetMapper
      *
      * @return NodeInterface[]|null
      */
-    public function getDescendants(NodeInterface $node)
+    public function findDescendants(NodeInterface $node)
     {
         $sql = new Sql($this->databaseAdapter);
 
@@ -240,7 +290,7 @@ class SqlNestedSetMapper
         $result = $statement->execute([
             ':root_id' => $node->getRootId(),
             ':lft' => $node->getLft(),
-            ':rgt' => $node->getRgt(),
+            ':rgt' => $node->getRgt()
         ]);
 
         return $this->getResultArray($result);
@@ -274,22 +324,31 @@ class SqlNestedSetMapper
      * NodeInterface entity.
      *
      * @param NodeInterface $node
+     * @param bool $includeCurrent
      *
      * @return NodeInterface[]
      */
-    public function getSiblings(NodeInterface $node)
+    public function findSiblings(NodeInterface $node, $includeCurrent = false)
     {
         $sql = new Sql($this->databaseAdapter);
+
+        $params = [
+            ':level' => $node->getLevel(),
+            ':root_id' => $node->getRootId()
+        ];
 
         $select = $sql->select();
         $select->from($this->tableName);
         $select->where('level = :level');
         $select->where('root_id = :root_id');
-        $select->where('id <> :id');
+        if ($includeCurrent === false) {
+            $select->where('id <> :id');
+            $params['id'] = $node->getId();
+        }
         $select->order('lft');
 
         $statement = $sql->prepareStatementForSqlObject($select);
-        $result = $statement->execute([':id' => $node->getId(), ':level' => $node->getLevel(), ':root_id' => $node->getRootId()]);
+        $result = $statement->execute($params);
 
         return $this->getResultArray($result);
     }
@@ -343,7 +402,7 @@ class SqlNestedSetMapper
      * Returns the result as a NodeInterface entity or null.
      *
      * @param $result
-     * @return null|object
+     * @return null|NodeInterface
      */
     private function getResultRow(ResultInterface $result)
     {
@@ -354,5 +413,22 @@ class SqlNestedSetMapper
         }
 
         return null;
+    }
+
+    /**
+     * @param Select $select
+     * @param bool $includeBaseNode
+     *
+     * @return array
+     * @throws InvalidNodeIdException
+     */
+    private function expandSelectWithBaseNodeLogic(Select $select, $includeBaseNode)
+    {
+        $params = [];
+        if ($includeBaseNode === false) {
+            $select->where('id <> :idbasenode');
+            $params['idbasenode'] = $this->findBaseNode()->getId();
+        }
+        return $params;
     }
 }

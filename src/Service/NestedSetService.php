@@ -14,6 +14,7 @@
 namespace HenrikThesing\NestedSet\Service;
 
 use HenrikThesing\NestedSet\Entity\NodeInterface;
+use HenrikThesing\NestedSet\Exception\InvalidNodeIdException;
 use HenrikThesing\NestedSet\Mapper\SqlNestedSetMapper;
 
 use Zend\EventManager\EventManagerAwareInterface;
@@ -26,12 +27,40 @@ class NestedSetService implements EventManagerAwareInterface
     /** @var SqlNestedSetMapper $mapper */
     protected $mapper;
 
+    /** @var  bool */
+    protected $includeBaseNode = false;
+
     /**
      * @param SqlNestedSetMapper $mapper
      */
     public function __construct(SqlNestedSetMapper $mapper)
     {
         $this->mapper = $mapper;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIncludeBaseNode()
+    {
+        return $this->includeBaseNode;
+    }
+
+    /**
+     * @param boolean $includeBaseNode
+     */
+    public function setIncludeBaseNode($includeBaseNode)
+    {
+        $this->includeBaseNode = $includeBaseNode;
+    }
+
+    /**
+     * @return NodeInterface
+     * @throws InvalidNodeIdException
+     */
+    public function findBaseNode()
+    {
+        return $this->mapper->findBaseNode();
     }
 
     /**
@@ -71,7 +100,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->findAll();
+        $result = $this->mapper->findAll($this->getIncludeBaseNode());
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -109,14 +138,14 @@ class NestedSetService implements EventManagerAwareInterface
      *
      * @return NodeInterface[]|null
      */
-    public function getRootNodes()
+    public function findRootNodes()
     {
         $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this);
         if ($event->stopped()) {
             return $event->last();
         }
 
-        $result = $this->mapper->getRootNodes();
+        $result = $this->mapper->findRootNodes();
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -132,7 +161,7 @@ class NestedSetService implements EventManagerAwareInterface
      *
      * @return NodeInterface[]
      */
-    public function getBranch(NodeInterface $node)
+    public function findBranch(NodeInterface $node)
     {
         $params = compact('node');
         $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
@@ -140,7 +169,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->getBranch($node);
+        $result = $this->mapper->findBranch($node, $this->getIncludeBaseNode());
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -156,7 +185,7 @@ class NestedSetService implements EventManagerAwareInterface
      *
      * @return NodeInterface[]|null
      */
-    public function getAncestors(NodeInterface $node)
+    public function findAncestors(NodeInterface $node)
     {
         $params = compact('node');
         $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
@@ -164,7 +193,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->getAncestors($node);
+        $result = $this->mapper->findAncestors($node, $this->getIncludeBaseNode());
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -190,7 +219,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->getParent($node);
+        $result = $this->mapper->getParent($node, $this->getIncludeBaseNode());
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -206,7 +235,7 @@ class NestedSetService implements EventManagerAwareInterface
      *
      * @return NodeInterface[]|null
      */
-    public function getDescendants(NodeInterface $node)
+    public function findDescendants(NodeInterface $node)
     {
         $params = compact('node');
         $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
@@ -214,7 +243,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->getDescendants($node);
+        $result = $this->mapper->findDescendants($node);
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
@@ -251,10 +280,11 @@ class NestedSetService implements EventManagerAwareInterface
      * NodeInterface entity.
      *
      * @param NodeInterface $node
+     * @param bool $includeCurrent
      *
      * @return NodeInterface[]
      */
-    public function getSiblings(NodeInterface $node)
+    public function findSiblings(NodeInterface $node, $includeCurrent = false)
     {
         $params = compact('node');
         $event = $this->getEventManager()->trigger(__FUNCTION__.'.pre', $this, $params);
@@ -262,7 +292,7 @@ class NestedSetService implements EventManagerAwareInterface
             return $event->last();
         }
 
-        $result = $this->mapper->getSiblings($node);
+        $result = $this->mapper->findSiblings($node, $includeCurrent);
 
         $params['__RESULT__'] = $result;
         $this->getEventManager()->trigger(__FUNCTION__.'.post', $this, $params);
