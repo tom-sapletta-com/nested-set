@@ -11,14 +11,24 @@
     "authors": [
         {
             "name": "Henrik Thesing",
-            "email": "mail@henrikthesing.de"
+            "email": "mail@henrikthesing.de",
+            "homepage": "http://www.henrikthesing.de",
+            "role": "Developer"
         }
     ],
+    "support": {
+        "email": "mail@henrikthesing.de",
+        "issues": "https://github.com/henrikthesing/nested-set/issues"
+    },
     "require": {
         "php": ">=5.3.3",
         "zendframework/zend-db": "^2.3.0",
         "zendframework/zend-modulemanager": "^2.3.0",
         "zendframework/zend-servicemanager": "^2.3.0",
         "zendframework/zend-stdlib": "^2.3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.0",
+        "zendframework/zendframework": "^2.3.0"
     }
 }
