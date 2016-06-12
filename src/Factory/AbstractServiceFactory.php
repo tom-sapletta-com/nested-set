@@ -27,6 +27,15 @@ class AbstractServiceFactory implements AbstractFactoryInterface
 {
     protected $serviceNamespace = 'HenrikThesing\NestedSet\Service';
 
+    /**
+     * @param ContainerInterface $container
+     * @param string             $requestedName
+     * @param array|null         $options
+     *
+     * @return NestedSetService
+     * @throws InvalidServiceConfigurationException
+     * @throws InvalidServiceNameException
+     */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
         $extracted = $this->extractRequestedName($requestedName);
