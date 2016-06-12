@@ -22,7 +22,7 @@ use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use Zend\Stdlib\Hydrator\HydratorInterface;
+use Zend\Hydrator\HydratorInterface;
 
 class SqlNestedSetMapper
 {

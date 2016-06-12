@@ -18,40 +18,16 @@ use HenrikThesing\NestedSet\Exception\InvalidServiceNameException;
 use HenrikThesing\NestedSet\Service\NestedSetService;
 use HenrikThesing\NestedSet\Mapper\SqlNestedSetMapper;
 
+use Interop\Container\ContainerInterface;
 use Zend\Filter\Word\CamelCaseToUnderscore;
-use Zend\ServiceManager\AbstractFactoryInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
-use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\ServiceManager\Factory\AbstractFactoryInterface;
+use Zend\Hydrator\ClassMethods;
 
 class AbstractServiceFactory implements AbstractFactoryInterface
 {
     protected $serviceNamespace = 'HenrikThesing\NestedSet\Service';
 
-    /**
-     * Determine if we can create a service with the requested name.
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     * @param $name
-     * @param $requestedName
-     *
-     * @return bool
-     */
-    public function canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
-    {
-        return substr($requestedName, 0, mb_strlen($this->serviceNamespace)) === $this->serviceNamespace;
-    }
-
-    /**
-     * Create a service with the given name.
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     * @param $name
-     * @param $requestedName
-     * @return NestedSetService
-     * @throws InvalidServiceConfigurationException
-     * @throws InvalidServiceNameException
-     */
-    public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
+    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
         $extracted = $this->extractRequestedName($requestedName);
         if (count($extracted) === 0) {
@@ -59,7 +35,7 @@ class AbstractServiceFactory implements AbstractFactoryInterface
         }
 
         $alias = $extracted['alias'];
-        $config = $serviceLocator->get('Config');
+        $config = $container->get('Config');
 
         if (!array_key_exists($alias, $config['henrikthesing']['nested_set'])) {
             throw new InvalidServiceConfigurationException('Configuration for "'.strip_tags($alias).'" not found');
@@ -68,13 +44,26 @@ class AbstractServiceFactory implements AbstractFactoryInterface
         $config = $config['henrikthesing']['nested_set'][$alias];
 
         $mapper = new SqlNestedSetMapper(
-            $serviceLocator,
-            $serviceLocator->get($config['database_adapter']),
+            $container,
+            $container->get($config['database_adapter']),
             new ClassMethods(),
             $config['table_name']
         );
 
         return new NestedSetService($mapper);
+    }
+
+    /**
+     * Determine if we can create a service with the requested name.
+     *
+     * @param ContainerInterface $container
+     * @param $requestedName
+     *
+     * @return bool
+     */
+    public function canCreate(ContainerInterface $container, $requestedName)
+    {
+        return substr($requestedName, 0, mb_strlen($this->serviceNamespace)) === $this->serviceNamespace;
     }
 
     /**
