@@ -17,11 +17,11 @@ use HenrikThesing\NestedSet\Entity\NodeInterface;
 use HenrikThesing\NestedSet\Exception\InvalidNodeIdException;
 use HenrikThesing\NestedSet\Hydrator\MapperNamingStrategy;
 
+use Interop\Container\ContainerInterface;
 use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Hydrator\HydratorInterface;
 
 class SqlNestedSetMapper
@@ -38,16 +38,16 @@ class SqlNestedSetMapper
     /** @var NodeInterface */
     protected $baseNode;
 
-    /** @var ServiceLocatorInterface */
+    /** @var ContainerInterface */
     protected $serviceLocator;
 
     /**
-     * @param ServiceLocatorInterface $serviceLocator
+     * @param ContainerInterface $serviceLocator
      * @param AdapterInterface $databaseAdapter
      * @param HydratorInterface $hydrator
      * @param string $tableName
      */
-    public function __construct(ServiceLocatorInterface $serviceLocator, AdapterInterface $databaseAdapter, HydratorInterface $hydrator, $tableName)
+    public function __construct(ContainerInterface $serviceLocator, AdapterInterface $databaseAdapter, HydratorInterface $hydrator, $tableName)
     {
         $this->serviceLocator = $serviceLocator;
         $this->databaseAdapter = $databaseAdapter;
