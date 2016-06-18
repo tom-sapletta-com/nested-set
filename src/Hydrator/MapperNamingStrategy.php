@@ -14,7 +14,7 @@
 namespace HenrikThesing\NestedSet\Hydrator;
 
 use Zend\Filter\Word\UnderscoreToCamelCase;
-use Zend\Stdlib\Hydrator\NamingStrategy\NamingStrategyInterface;
+use Zend\Hydrator\NamingStrategy\NamingStrategyInterface;
 
 class MapperNamingStrategy implements NamingStrategyInterface
 {
