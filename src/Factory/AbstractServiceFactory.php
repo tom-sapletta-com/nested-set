@@ -21,7 +21,6 @@ use HenrikThesing\NestedSet\Mapper\SqlNestedSetMapper;
 use Interop\Container\ContainerInterface;
 use Zend\Filter\Word\CamelCaseToUnderscore;
 use Zend\ServiceManager\Factory\AbstractFactoryInterface;
-use Zend\Hydrator\ClassMethods;
 
 class AbstractServiceFactory implements AbstractFactoryInterface
 {
@@ -55,7 +54,7 @@ class AbstractServiceFactory implements AbstractFactoryInterface
         $mapper = new SqlNestedSetMapper(
             $container,
             $container->get($config['database_adapter']),
-            new ClassMethods(),
+            $container->get('GreedyBytes\Utilities\Hydrator\ClassMethods'),
             $config['table_name']
         );
 
