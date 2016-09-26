@@ -15,7 +15,6 @@ namespace HenrikThesing\NestedSet\Mapper;
 
 use HenrikThesing\NestedSet\Entity\NodeInterface;
 use HenrikThesing\NestedSet\Exception\InvalidNodeIdException;
-use HenrikThesing\NestedSet\Hydrator\MapperNamingStrategy;
 
 use Interop\Container\ContainerInterface;
 use Zend\Db\Adapter\AdapterInterface;
@@ -53,7 +52,6 @@ class SqlNestedSetMapper
         $this->databaseAdapter = $databaseAdapter;
         $this->hydrator = $hydrator;
         $this->setTableName($tableName);
-        $this->hydrator->setNamingStrategy(new MapperNamingStrategy());
     }
 
     /**

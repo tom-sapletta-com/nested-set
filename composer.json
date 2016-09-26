@@ -23,6 +23,7 @@
     "require": {
         "php": ">=5.3.3",
         "container-interop/container-interop": "^1.1",
+        "greedybytes/utilities": "~1.0",
         "zendframework/zend-db": "^2.3.0",
         "zendframework/zend-modulemanager": "^2.3.0",
         "zendframework/zend-servicemanager": "^2.3.0",
